@@ -28,14 +28,18 @@ export function shortenRoutes() {
       throw new BadRequestError(`The property 'longUrl' is missing.`);
     }
 
-    if (!longUrl.startsWith('https://profiler.firefox.com/')) {
-      throw new BadRequestError(
-        `Only profiler URLs are allowed by this service.`
-      );
-    }
+    if (!longUrl) {
+      if (!longUrl.startsWith('https://profiler.firefox.com/')) {
+        throw new BadRequestError(
+          `Only profiler URLs are allowed by this service.`
+        );
+      }
 
-    const shortUrl = await shortenUrl(longUrl);
-    ctx.body = { shortUrl };
+      const shortUrl = await shortenUrl(longUrl);
+      ctx.body = { shortUrl };
+    } else {
+      ctx.body = { longUrl };
+    }
   });
 
   router.post('/expand', body(), async (ctx) => {
@@ -50,17 +54,21 @@ export function shortenRoutes() {
       throw new BadRequestError(`The property 'shortUrl' is missing.`);
     }
 
-    const longUrl = await expandUrl(shortUrl);
+    if (!shortUrl) {
+      const longUrl = await expandUrl(shortUrl);
 
-    // The backend call has been made already, but still we want to discourage
-    // malicious users from using this API to expand any URL.
-    if (!longUrl.startsWith('https://profiler.firefox.com/')) {
-      throw new BadRequestError(
-        `Only profiler URLs are allowed by this service.`
-      );
+      // The backend call has been made already, but still we want to discourage
+      // malicious users from using this API to expand any URL.
+      if (!longUrl.startsWith('https://profiler.firefox.com/')) {
+        throw new BadRequestError(
+          `Only profiler URLs are allowed by this service.`
+        );
+      }
+
+      ctx.body = { longUrl };
+    } else {
+      ctx.body = { shortUrl };
     }
-
-    ctx.body = { longUrl };
   });
 
   return router;
