@@ -89,7 +89,7 @@ RUN ls -la
 # ----- And now, let's build the runtime container -----
 FROM node:18-bookworm-slim
 ENV NODE_ENV="production"
-ENV PORT=8000
+ENV PORT=8080
 
 # We create the runtime user.
 RUN set -x \
@@ -123,4 +123,4 @@ CMD ["node", "index.js"]
 
 # This health check command can help know when the server is down
 HEALTHCHECK --interval=1m --timeout=3s \
-  CMD curl --silent --show-error --fail http://localhost:8000/__lbheartbeat__ || exit 1
+  CMD curl --silent --show-error --fail http://localhost:${PORT}/__lbheartbeat__ || exit 1
