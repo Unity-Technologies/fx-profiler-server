@@ -90,6 +90,7 @@ class MockGcsStorage implements GcsStorage {
 type GcsConfig = Readonly<{
   // If the string 'MOCKED' is passed then the mocked service is returned.
   googleAuthenticationFilePath: string;
+  googleAuthJson: string;
   gcsBucket: string;
 }>;
 
@@ -100,6 +101,7 @@ type GcsConfig = Readonly<{
 export function create(config: GcsConfig): GcsStorage {
   const log = getLogger('logic.gcs.create');
   const googleAuthenticationFilePath = config.googleAuthenticationFilePath;
+  const googleAuthJson = config.googleAuthJson;
   if (googleAuthenticationFilePath === 'MOCKED') {
     log.debug('gcs_mocked', 'Returning the mocked Storage backend.');
     return new MockGcsStorage();
@@ -110,10 +112,14 @@ export function create(config: GcsConfig): GcsStorage {
     throw new Error('The bucket name should not be empty');
   }
 
+  let storage = null;
+  if (googleAuthJson) {
+    storage = new Storage({ credentials: JSON.parse(googleAuthJson) });
+  } else {
+    storage = new Storage({ keyFilename: googleAuthenticationFilePath });
+  }
+
   log.debug('gcs_real', 'Returning the real Storage backend.');
-  const storage = new Storage({
-    keyFilename: googleAuthenticationFilePath,
-  });
   const bucket = storage.bucket(gcsBucket);
 
   return new RealGcsStorage(bucket);

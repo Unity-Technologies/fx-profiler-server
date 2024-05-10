@@ -18,6 +18,7 @@ describe('logic/gcs', () => {
     jest.spyOn(Bucket.prototype, 'file');
     const storage = gcsStorageCreate({
       googleAuthenticationFilePath: 'MOCKED',
+      googleAuthJson: '',
       gcsBucket: '',
     });
 
@@ -35,6 +36,7 @@ describe('logic/gcs', () => {
 
     const storage = gcsStorageCreate({
       googleAuthenticationFilePath: '',
+      googleAuthJson: '',
       gcsBucket: 'profile-store',
     });
 
@@ -51,6 +53,7 @@ describe('logic/gcs', () => {
 
     const storage = gcsStorageCreate({
       googleAuthenticationFilePath: '/file/path',
+      googleAuthJson: '',
       gcsBucket: 'profile-store',
     });
 
