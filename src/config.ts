@@ -42,6 +42,12 @@ function loadConfig() {
       default: '',
       env: 'GCS_AUTHENTICATION_PATH',
     },
+    googleAuthJson: {
+      doc: 'Contents of JSON auth',
+      format: String,
+      default: '',
+      env: 'GCS_AUTH_JSON',
+    },
     jwtSecret: {
       doc: `Secret that's used when generating and verifying JWT tokens`,
       format: String,
@@ -67,7 +73,9 @@ function loadConfig() {
 
 // This checks if the configured values are valid, and throws otherwise.
 function validateConfigValues(config: Config) {
-  const { googleAuthenticationFilePath } = config;
+  const { googleAuthenticationFilePath, googleAuthJson } = config;
+
+  if ( googleAuthJson ) return;
 
   if (
     googleAuthenticationFilePath &&
@@ -96,6 +104,7 @@ type Config = Readonly<{
   httpPort: number;
   gcsBucket: string;
   googleAuthenticationFilePath: string;
+  googleAuthJson: string;
   jwtSecret: string;
   bitlyToken: string;
 }>;
