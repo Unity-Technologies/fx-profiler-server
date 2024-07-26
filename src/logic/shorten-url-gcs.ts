@@ -10,6 +10,7 @@ import { GcsStorage } from './gcs';
 
 import { config } from '../config';
 import { getLogger } from '../log';
+import { BadRequestError } from '../utils/errors';
 
 import { encode as toBase32 } from '../utils/base32';
 
@@ -37,13 +38,20 @@ export async function shortenUrlGcs(storage: GcsStorage, longUrl: string): Promi
 
   const token = await generateTokenForProfile();
   const filename = `${token}.url`;
+  const prefix =`https://${config.gcsShorteningHost}/`;
+
+  if (!longUrl.startsWith(prefix)) {
+    throw new BadRequestError(
+      `Only profiler URLs are allowed by this service.`
+    );
+  }
 
   const googleStorageStream = storage.getWriteStreamForFile(filename, false);
   googleStorageStream.write(longUrl);
   googleStorageStream.end();
 
   // the shortUrl
-  const shortUrl = `https://profiler-dot-unity-eng-arch-dev.uw.r.appspot.com/s/${token}`;
+  const shortUrl = `${prefix}s/${token}`;
   log.info('shorten', `shortened to ${shortUrl}`);
   return shortUrl;
 }
@@ -53,7 +61,7 @@ export async function expandUrlGcs(storage: GcsStorage, urlToExpand: string): Pr
 
   const token = urlToExpand.split('/').pop();
   if (token === undefined || token.length != 39) {
-    throw new Error('Invalid URL "' + token + '" ' + token.length);
+    throw new Error('Invalid URL');
   }
   const filename = `${token}.url`;
   const file = await storage.readFile(filename);

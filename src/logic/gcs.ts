@@ -130,7 +130,12 @@ export function create(config: GcsConfig): GcsStorage {
 
   let storage = null;
   if (googleAuthJson) {
-    storage = new Storage({ credentials: JSON.parse(googleAuthJson) });
+    if (googleAuthJson.startsWith('base64:')) {
+      const decoded = Buffer.from(googleAuthJson.slice(7), 'base64').toString();
+      storage = new Storage({ credentials: JSON.parse(decoded) });
+    } else {
+      storage = new Storage({ credentials: JSON.parse(googleAuthJson) });
+    }
   } else {
     storage = new Storage({ keyFilename: googleAuthenticationFilePath });
   }
