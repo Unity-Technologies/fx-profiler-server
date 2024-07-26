@@ -26,7 +26,7 @@ describe('logic/gcs', () => {
     await storage.ping();
     expect(Bucket.prototype.exists).not.toHaveBeenCalled();
 
-    expect(storage.getWriteStreamForFile('filepath')).toBeInstanceOf(Writable);
+    expect(storage.getWriteStreamForFile('filepath', true)).toBeInstanceOf(Writable);
     expect(Bucket.prototype.file).not.toHaveBeenCalled();
   });
 
@@ -43,7 +43,7 @@ describe('logic/gcs', () => {
     await storage.ping();
     expect(Bucket.prototype.exists).toHaveBeenCalled();
 
-    expect(storage.getWriteStreamForFile('filepath')).toBeInstanceOf(Writable);
+    expect(storage.getWriteStreamForFile('filepath', true)).toBeInstanceOf(Writable);
     expect(Bucket.prototype.file).toHaveBeenCalledWith('filepath');
   });
 
@@ -60,7 +60,7 @@ describe('logic/gcs', () => {
     await storage.ping();
     expect(Bucket.prototype.exists).toHaveBeenCalled();
 
-    expect(storage.getWriteStreamForFile('filepath')).toBeInstanceOf(Writable);
+    expect(storage.getWriteStreamForFile('filepath', true)).toBeInstanceOf(Writable);
     expect(Bucket.prototype.file).toHaveBeenCalledWith('filepath');
   });
 });

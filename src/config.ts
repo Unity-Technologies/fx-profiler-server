@@ -66,6 +66,12 @@ function loadConfig() {
       default: false,
       env: `GCS_SHORTENING`,
     },
+    gcsShorteningHost: {
+      doc: `If GCS shortening is enabled, the required hostname prefix for all URLs to be shorted, as well as the URL to be returned.`,
+      format: String,
+      default: '',
+      env: `GCS_SHORTENING_HOST`,
+    },
   });
 
   conf.validate();
@@ -114,6 +120,7 @@ type Config = Readonly<{
   jwtSecret: string;
   bitlyToken: string;
   gcsShortening: boolean;
+  gcsShorteningHost: string;
 }>;
 
 export const config: Config = loadConfig();
