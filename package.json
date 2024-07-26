@@ -7,6 +7,9 @@
   "author": "Mozilla",
   "license": "MPL-2.0",
   "private": true,
+  "engines": {
+    "yarn": ">=1.22 <2.0"
+  },
   "scripts": {
     "license-check": "devtools-license-check",
     "lint": "run-p lint-js lint-python prettier-run",
@@ -50,6 +53,7 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/koa__cors": "^4.0.3",
     "@types/koa__router": "^12.0.4",
+    "@types/koa-static": "^4.0.4",
     "@types/node": "^20.12.7",
     "@types/node-fetch": "^2.6.2",
     "@types/supertest": "^6.0.2",
@@ -93,6 +97,7 @@
     "koa-json-body": "^5.3.0",
     "koa-jwt": "^4.0.4",
     "koa-logger": "^3.2.1",
+    "koa-static": "^5.0.0",
     "mozlog": "^3.0.2",
     "node-fetch": "^2.7.0"
   },

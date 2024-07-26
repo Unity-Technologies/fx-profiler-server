@@ -60,6 +60,12 @@ function loadConfig() {
       default: process.env.NODE_ENV === 'test' ? 'FAKE_TOKEN_FOR_TESTS' : '',
       env: 'BITLY_TOKEN',
     },
+    gcsShortening: {
+      doc: `If true, use GCS-based shortening where full URLs are stored in objects in the bucket.`,
+      format: Boolean,
+      default: false,
+      env: `GCS_SHORTENING`,
+    },
   });
 
   conf.validate();
@@ -107,6 +113,7 @@ type Config = Readonly<{
   googleAuthJson: string;
   jwtSecret: string;
   bitlyToken: string;
+  gcsShortening: boolean;
 }>;
 
 export const config: Config = loadConfig();

@@ -7,9 +7,14 @@
 import Router from '@koa/router';
 import body from 'koa-json-body';
 
+import { config } from '../config';
+import { create as gcsStorageCreate } from '../logic/gcs';
 import { shortenUrl, expandUrl } from '../logic/shorten-url';
+import { shortenUrlGcs, expandUrlGcs } from '../logic/shorten-url-gcs';
 import { getLogger } from '../log';
 import { BadRequestError } from '../utils/errors';
+
+const VALIDATE_URLS = false;
 
 export function shortenRoutes() {
   const log = getLogger('routes.shorten');
@@ -28,18 +33,24 @@ export function shortenRoutes() {
       throw new BadRequestError(`The property 'longUrl' is missing.`);
     }
 
-    if (!longUrl) {
-      if (!longUrl.startsWith('https://profiler.firefox.com/')) {
-        throw new BadRequestError(
-          `Only profiler URLs are allowed by this service.`
-        );
-      }
-
-      const shortUrl = await shortenUrl(longUrl);
-      ctx.body = { shortUrl };
-    } else {
-      ctx.body = { longUrl };
+    log.info('longUrl', longUrl);
+    if (VALIDATE_URLS && !longUrl.startsWith('https://profiler.firefox.com/')) {
+      throw new BadRequestError(
+        `Only profiler URLs are allowed by this service.`
+      );
     }
+
+    let shortUrl;
+    if (config.gcsShortening) {
+      log.info('gcs', 'shortening using gcs');
+      const storage = gcsStorageCreate(config);
+      shortUrl = await shortenUrlGcs(storage, longUrl);
+    } else {
+      log.info('gcs', 'shortening using regular');
+      shortUrl = await shortenUrl(longUrl);
+    }
+
+    ctx.body = { shortUrl };
   });
 
   router.post('/expand', body(), async (ctx) => {
@@ -54,21 +65,23 @@ export function shortenRoutes() {
       throw new BadRequestError(`The property 'shortUrl' is missing.`);
     }
 
-    if (!shortUrl) {
-      const longUrl = await expandUrl(shortUrl);
-
-      // The backend call has been made already, but still we want to discourage
-      // malicious users from using this API to expand any URL.
-      if (!longUrl.startsWith('https://profiler.firefox.com/')) {
-        throw new BadRequestError(
-          `Only profiler URLs are allowed by this service.`
-        );
-      }
-
-      ctx.body = { longUrl };
+    let longUrl;
+    if (config.gcsShortening) {
+      const storage = gcsStorageCreate(config);
+      longUrl = await expandUrlGcs(storage, shortUrl);
     } else {
-      ctx.body = { shortUrl };
+      longUrl = await expandUrl(shortUrl);
     }
+
+    // The backend call has been made already, but still we want to discourage
+    // malicious users from using this API to expand any URL.
+    if (VALIDATE_URLS && !longUrl.startsWith('https://profiler.firefox.com/')) {
+      throw new BadRequestError(
+        `Only profiler URLs are allowed by this service.`
+      );
+    }
+
+    ctx.body = { longUrl };
   });
 
   return router;

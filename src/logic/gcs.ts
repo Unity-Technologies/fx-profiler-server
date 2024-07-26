@@ -16,9 +16,10 @@ import { getLogger } from '../log';
  * This is the interface we implement for outside consumption. This is very
  * simple because we don't need a lot of functionality.
  */
-interface GcsStorage {
+export interface GcsStorage {
   ping(): Promise<void>;
-  getWriteStreamForFile(filePath: string): Writable;
+  getWriteStreamForFile(filePath: string, alreadyGzipped: boolean): Writable;
+  readFile(filePath: string): Promise<Buffer>;
   deleteFile(filePath: string): Promise<unknown>;
 }
 
@@ -39,21 +40,25 @@ class RealGcsStorage implements GcsStorage {
     }
   }
 
-  getWriteStreamForFile(filePath: string): Writable {
+  getWriteStreamForFile(filePath: string, alreadyGzipped: boolean): Writable {
     const file = this.bucket.file(filePath);
 
     // This uses fast-crc32c under the hood, to compute the crc32c checksum of
     // the sent data and compare with the checksum google sends back after
     // upload.
+    let metadata: any = {
+        contentType: 'text/plain',
+        cacheControl: 'max-age: 365000000, immutable',
+    };
+    if (alreadyGzipped) {
+      metadata.contentEncoding = 'gzip';
+    }
+
     const googleStorageStream = file.createWriteStream({
       public: true,
       resumable: false,
-      gzip: false, // Our content is already gzipped
-      metadata: {
-        contentType: 'text/plain',
-        cacheControl: 'max-age: 365000000, immutable',
-        contentEncoding: 'gzip',
-      },
+      gzip: false, // We never want writing to gzip. Our content may be already gzipped
+      metadata
     });
     return googleStorageStream;
   }
@@ -61,6 +66,13 @@ class RealGcsStorage implements GcsStorage {
   deleteFile(filePath: string): Promise<unknown> {
     const file = this.bucket.file(filePath);
     return file.delete();
+  }
+
+  readFile(filePath: string): Promise<Buffer> {
+    const file = this.bucket.file(filePath);
+    return file.download().then((data) => {
+      return data[0];
+    });
   }
 }
 
@@ -84,6 +96,10 @@ class MockGcsStorage implements GcsStorage {
 
   deleteFile(_filePath: string): Promise<unknown> {
     return Promise.resolve();
+  }
+
+  readFile(_filePath: string): Promise<Buffer> {
+    return Promise.resolve(Buffer.from(''));
   }
 }
 

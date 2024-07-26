@@ -19,6 +19,10 @@ export const ACCEPT_VALUE_MIME = 'application/vnd.firefox-profiler+json';
 
 export function versioning(expectedVersion: number) {
   return async function (ctx: Context, next: () => Promise<void>) {
+    if (ctx.path !== '/compressed-store') {
+      return await next();
+    }
+
     const acceptValue = ctx.get('accept');
     if (!acceptValue) {
       ctx.throw(400, `The header 'Accept' is missing.`);

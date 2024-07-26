@@ -7,30 +7,29 @@
 
 import Router from '@koa/router';
 import { getLogger } from '../log';
+import { config } from '../config';
+import { create as gcsStorageCreate } from '../logic/gcs';
+import { expandUrlGcs } from '../logic/shorten-url-gcs';
+import send from 'koa-send';
 
 export function rootRoutes() {
   const log = getLogger('routes.root');
   const router = new Router();
 
+  router.get(new RegExp('/s/([a-z][0-9])*'), async (ctx) => {
+    log.verbose('s', ctx.request.url);
+    const storage = gcsStorageCreate(config);
+    const shortUrl = ctx.request.url;
+    const longUrl = await expandUrlGcs(storage, shortUrl);
+    ctx.redirect(longUrl);
+  });
+
+  // anything else, just serve the frontend index.html
   router.get('/', async (ctx) => {
     log.verbose('/');
 
-    // Let's output a minimal (valid!) HTML document with a link to our repository.
-    ctx.body = `
-      <!doctype html>
-      <html lang='en'>
-      <meta charset='utf-8'>
-      <title>Firefox Profiler Server</title>
-      This is the Firefox Profiler server.
-      See <a href='https://github.com/firefox-devtools/profiler-server'>https://github.com/firefox-devtools/profiler-server</a>
-      for more information.
-    `;
+    await send(ctx, "frontend/index.html", { root: "dist" });
   });
-
-  router.redirect(
-    '/contribute.json',
-    'https://profiler.firefox.com/contribute.json'
-  );
 
   return router;
 }
