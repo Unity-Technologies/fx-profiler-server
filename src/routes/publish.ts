@@ -68,7 +68,7 @@ export function publishRoutes() {
     const gunzipStream = new GunzipWrapper();
 
     const storage = gcsStorageCreate(config);
-    const googleStorageStream = storage.getWriteStreamForFile(profileToken);
+    const googleStorageStream = storage.getWriteStreamForFile(profileToken, true);
 
     // The "pipeline" utility conveniently destroys all streams when there's an
     // error. However the HTTP request isn't part of the pipeline because we
