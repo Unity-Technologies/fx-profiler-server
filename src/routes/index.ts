@@ -14,6 +14,7 @@ import { shortenRoutes } from './shorten';
 import { versioning } from '../middlewares';
 
 import Koa from 'koa';
+import serve from 'koa-static';
 
 /**
  * This function adds the main endpoints for this app.
@@ -37,13 +38,16 @@ export function configureRoutes(app: Koa) {
 
   configureTechnicalRoutes(app);
 
-  // Versioning and CORS applies only to API routes, that's why we specify them
-  // here. Also we specify the CORS middleware before the Versioning middleware
-  // so that versioning doesn't apply to CORS preflight requests.
-
   // Note we use the default configuration for cors, that is we allow all
   // origins and all methods.
   app.use(cors());
+
+  // The frontend static code; defer fallback here
+  app.use(serve('dist/frontend', { defer: true }));
+
+  // Versioning and CORS applies only to API routes, that's why we specify them
+  // here. Also we specify the CORS middleware before the Versioning middleware
+  // so that versioning doesn't apply to CORS preflight requests.
   app.use(versioning(1));
 
   configureUserFacingRoutes(app);

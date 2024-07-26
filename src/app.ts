@@ -46,10 +46,14 @@ export function createApp() {
         // because this is an API server and shouldn't be used as a webpage,
         // everything is locked down as much as possible, following the
         // checklist at https://github.com/mozilla-services/websec-check.
+
+        // xxx unity -- we use koa-static to serve the frontend from the same host
+        // as the api server, so we loosen this up.
+
         directives: {
-          defaultSrc: ["'none'"],
-          frameAncestors: ["'none'"],
-          baseUri: ["'none'"],
+          defaultSrc: ["'self'"],
+          frameAncestors: ["'self'"],
+          baseUri: ["'self'"],
           formAction: ["'self'"],
           // This URI is what the checklist (see link above) suggests.
           reportUri: '/__cspreport__',
@@ -60,7 +64,7 @@ export function createApp() {
         // 2 years according to https://wiki.mozilla.org/Security/Server_Side_TLS
         maxAge: 2 * 365 * 24 * 60 * 60,
       },
-      frameguard: { action: 'deny' },
+      //frameguard: { action: 'deny' },
     })
   );
 
