@@ -43,7 +43,7 @@ export function configureRoutes(app: Koa) {
   app.use(cors());
 
   // The frontend static code; defer fallback here
-  app.use(serve('dist/frontend', { defer: true }));
+  app.use(serve('frontend', { defer: true }));
 
   // Versioning and CORS applies only to API routes, that's why we specify them
   // here. Also we specify the CORS middleware before the Versioning middleware
