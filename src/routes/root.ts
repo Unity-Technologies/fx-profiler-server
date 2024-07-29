@@ -16,19 +16,13 @@ export function rootRoutes() {
   const log = getLogger('routes.root');
   const router = new Router();
 
-  router.get(new RegExp('/s/([a-z][0-9])*'), async (ctx) => {
-    log.verbose('s', ctx.request.url);
-    const storage = gcsStorageCreate(config);
-    const shortUrl = ctx.request.url;
-    const longUrl = await expandUrlGcs(storage, shortUrl);
-    ctx.redirect(longUrl);
-  });
+  // anything else, just serve the frontend index.html; this is so that 
+  // even before the service worker is installed, we can still use a from-url or
+  // whatever front end route
+  router.get(new RegExp('/.*'), async (ctx, next) => {
+    log.verbose("catch-all", ctx.URL.toString());
 
-  // anything else, just serve the frontend index.html
-  router.get('/', async (ctx) => {
-    log.verbose('/');
-
-    await send(ctx, "frontend/index.html", { root: "dist" });
+    await send(ctx, "frontend/index.html");
   });
 
   return router;

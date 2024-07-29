@@ -36,14 +36,17 @@ export function configureRoutes(app: Koa) {
   // - the result of routes() returns the configured routes.
   // - the result of allowedMethods() configures the OPTIONS verb.
 
+  // The frontend static code; serve the static files if they're found
+  // by URL, otherwise continue down. Ensure the static files have the
+  // right content-type.
+  app.use(serve('frontend'));
+
+  // The generic dockerflow etc routes
   configureTechnicalRoutes(app);
 
   // Note we use the default configuration for cors, that is we allow all
   // origins and all methods.
   app.use(cors());
-
-  // The frontend static code; defer fallback here
-  app.use(serve('frontend', { defer: true }));
 
   // Versioning and CORS applies only to API routes, that's why we specify them
   // here. Also we specify the CORS middleware before the Versioning middleware
@@ -51,14 +54,16 @@ export function configureRoutes(app: Koa) {
   app.use(versioning(1));
 
   configureUserFacingRoutes(app);
+
+  // Technically this is the final catch-all which shouldn't even be a router
+  // but whatever; it also doesn't need CORS.
+  configureFinalRootRoutes(app);
 }
 
 function configureTechnicalRoutes(app: Koa) {
-  const root = rootRoutes();
   const dockerFlow = dockerFlowRoutes();
   const cspReport = cspReportRoutes();
 
-  app.use(root.routes()).use(root.allowedMethods());
   app.use(dockerFlow.routes()).use(dockerFlow.allowedMethods());
   app.use(cspReport.routes()).use(cspReport.allowedMethods());
 }
@@ -71,4 +76,10 @@ function configureUserFacingRoutes(app: Koa) {
   app.use(publish.routes()).use(publish.allowedMethods());
   app.use(profile.routes()).use(profile.allowedMethods());
   app.use(shorten.routes()).use(shorten.allowedMethods());
+}
+
+function configureFinalRootRoutes(app: Koa) {
+  const root = rootRoutes();
+
+  app.use(root.routes()).use(root.allowedMethods());
 }

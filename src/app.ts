@@ -52,6 +52,8 @@ export function createApp() {
 
         directives: {
           defaultSrc: ["'self'"],
+          // needed so the profiler front-end can load profile data from anywhere
+          connectSrc: ["*"],
           frameAncestors: ["'self'"],
           baseUri: ["'self'"],
           formAction: ["'self'"],

@@ -136,5 +136,20 @@ export function publishRoutes() {
     ctx.body = jwtToken;
   });
 
+  // A request that returns a URL which itself can then be used to
+  // POST the data to. Done this way so that we can generate a PUT-signed URL
+  // for cloud storage directly, bypassing https proxy PUT data limits.
+  router.get('/compressed-store-url', async (ctx) => {
+    log.verbose('/compressed-store-url');
+    const storage = gcsStorageCreate(config);
+    const profileToken = await generateTokenForProfile();
+    const storageURL = await storage.getPostUploadURLForFile(profileToken, ctx.URL.origin);
+    const jwtToken = Jwt.generateToken({ profileToken });
+
+    const reply = { url: storageURL.toString(), jwt: jwtToken };
+
+    ctx.body = reply;
+  });
+
   return router;
 }
