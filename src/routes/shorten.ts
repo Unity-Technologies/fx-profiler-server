@@ -84,5 +84,13 @@ export function shortenRoutes() {
     ctx.body = { longUrl };
   });
 
+  router.get(new RegExp('/s/([a-z][0-9])*'), async (ctx) => {
+    log.verbose('s', ctx.request.url);
+    const storage = gcsStorageCreate(config);
+    const shortUrl = ctx.request.url;
+    const longUrl = await expandUrlGcs(storage, shortUrl);
+    ctx.redirect(longUrl);
+  });
+
   return router;
 }
