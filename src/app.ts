@@ -52,6 +52,7 @@ export function createApp() {
 
         directives: {
           defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-eval'"],
           // needed so the profiler front-end can load profile data from anywhere
           connectSrc: ["*"],
           frameAncestors: ["'self'"],
