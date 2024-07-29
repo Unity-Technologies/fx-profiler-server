@@ -19,6 +19,7 @@ import { getLogger } from '../log';
 export interface GcsStorage {
   ping(): Promise<void>;
   getWriteStreamForFile(filePath: string, alreadyGzipped: boolean): Writable;
+  getPostUploadURLForFile(filePath: string, origin: string): Promise<URL>;
   readFile(filePath: string): Promise<Buffer>;
   deleteFile(filePath: string): Promise<unknown>;
 }
@@ -63,6 +64,17 @@ class RealGcsStorage implements GcsStorage {
     return googleStorageStream;
   }
 
+  getPostUploadURLForFile(filePath: string, origin: string): Promise<URL> {
+    const options = {
+      version: 'v4',
+      action: 'write',
+      expires: Date.now() + 15 * 60 * 1000, // 15 minutes (to start uploading)
+      virtualHostedStyle: true,
+      contentType: 'application/vnd.firefox-profiler+json',
+    };
+    return this.bucket.file(filePath).getSignedUrl(options).then((data) => { return new URL(data[0]); });
+  }
+
   deleteFile(filePath: string): Promise<unknown> {
     const file = this.bucket.file(filePath);
     return file.delete();
@@ -92,6 +104,10 @@ class MockGcsStorage implements GcsStorage {
       },
     });
     return sinkWriteStream;
+  }
+
+  getPostUploadURLForFile(): Promise<URL> {
+    return new Promise(function() { throw "No URL"; }) as Promise<URL>;
   }
 
   deleteFile(_filePath: string): Promise<unknown> {
